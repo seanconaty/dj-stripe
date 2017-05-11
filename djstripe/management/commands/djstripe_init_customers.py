@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 from django.core.management.base import BaseCommand
 
 from ...models import Customer
-from ...settings import get_subscriber_model
+from ...settings import get_subscriber_model, STRIPE_LIVE_MODE
 
 
 class Command(BaseCommand):
@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         """Create Customer objects for Subscribers without Customer objects associated."""
-        for subscriber in get_subscriber_model().objects.filter(customer__isnull=True):
+        for subscriber in get_subscriber_model().objects.exclude(djstripe_customers__livemode=STRIPE_LIVE_MODE):
             # use get_or_create in case of race conditions on large subscriber bases
             Customer.get_or_create(subscriber=subscriber)
             print("Created subscriber for {0}".format(subscriber.email))
